@@ -31,6 +31,7 @@ class RequestHandler():
 	BASE_PATH = "./www"
 	HTTP_OK = "200 OK\n"
 	HTTP_404 = "404 Not found\n\n"
+	HTTP_301 = "301 Moved Permanently\r\n"
 	
 	def __init__(self, data):
 		self.requestType = data[0]
@@ -48,11 +49,19 @@ class RequestHandler():
 			return os.path.exists(self.fullPath)
 		return False
 		
+	# 404	
 	def notFound(self,server):
 		server.request.sendall(self.http + " " + self.HTTP_404)
 		server.request.sendall("<html lang=en><title>Error 404 Not Found</title>")
 		server.request.sendall("<b><body>404 Page not found</body></b>\n\n")
 		
+	#301	
+	def redirect(self, server):
+		server.request.sendall(self.http + " " + self.HTTP_301)
+		server.request.sendall("Location: " + self.path + "/" + "\r\n \r\n")
+		self.returnIndex(server)
+		
+	#200	
 	def returnPage(self,server):
 		server.request.sendall(self.http + " " + self.HTTP_OK + "Content-Type: " + self.mimeType + "\n\n")
 		with open(self.fullPath) as file:
@@ -72,7 +81,7 @@ class RequestHandler():
 				if (self.path[-1] == "/"):
 					self.returnIndex(server)
 				else:
-					self.notFound(server)
+					self.redirect(server)
 			else:
 				self.notFound(server)
 
